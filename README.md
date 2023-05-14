@@ -1,11 +1,12 @@
 
 # Weather app RESTful API
 
-By using Open Weather Map as API providier this API simplifies their response for average user which means no geek stuff.
+By using Open Weather Map as API provider this API simplifies their response for average user which means no geek stuff.
 ## Installation
 
+First make sure you have installed `python` and `redis` on your system
 
-First make sure you have installed `python` on your system
+[Python using anaconda](https://docs.anaconda.com/free/anaconda/install/index.html) & [Redis](https://redis.io/docs/getting-started/installation/)
 
 Clone the project
 
