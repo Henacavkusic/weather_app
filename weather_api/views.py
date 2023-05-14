@@ -1,10 +1,11 @@
-from django.shortcuts import render
 from django.core.cache import cache
 from django.http import JsonResponse
-from datetime import date, datetime
+
+from datetime import datetime
 import logging
 import requests
-import env
+
+from env import OWM_API_KEY
 from weather_api.models import WeatherData
 
 api_logger = logging.getLogger(__name__)
@@ -16,7 +17,7 @@ def current_weather(request):
     if not weather_app_response:
         lat, lon, err = get_lat_lon(location)
         if not err:
-            url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={env.OWM_API_KEY}&units=metric"
+            url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={OWM_API_KEY}&units=metric"
             api_logger.info(f"Getting current weather data for {location}")
             response = requests.get(url)
             if response.status_code != 200:
@@ -42,7 +43,7 @@ def forecast_weather(request):
     if not weather_app_response:
         lat, lon, err = get_lat_lon(location)
         if not err:
-            url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={env.OWM_API_KEY}&units=metric"
+            url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={OWM_API_KEY}&units=metric"
             api_logger.info(f"Getting forecast weather data for {location}")
             response = requests.get(url)
             if response.status_code != 200:
@@ -71,7 +72,7 @@ def history_weather(request):
     if not weather_app_response:
         lat, lon, err = get_lat_lon(location)
         if not err:
-            url = f"https://api.openweathermap.org/data/3.0/onecall/timemachine?lat={lat}&lon={lon}&dt={dt}&appid={env.OWM_API_KEY}&units=metric"
+            url = f"https://api.openweathermap.org/data/3.0/onecall/timemachine?lat={lat}&lon={lon}&dt={dt}&appid={OWM_API_KEY}&units=metric"
             api_logger.info(f"Getting weather data for {location} for {request.GET['date']}")
             response = requests.get(url)
             if response.status_code != 200:
@@ -92,7 +93,7 @@ def history_weather(request):
 
 
 def get_lat_lon(location):
-    url = f"https://api.openweathermap.org/geo/1.0/direct?q={location}&appid={env.OWM_API_KEY}"
+    url = f"https://api.openweathermap.org/geo/1.0/direct?q={location}&appid={OWM_API_KEY}"
     api_logger.info(f"Getting latitude and longitude coordinates for {location}")
     response = requests.get(url)
     if response.status_code != 200:
