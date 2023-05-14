@@ -17,7 +17,7 @@ Clone the project
 Go to the project directory
 
 ```
-  cd my-project
+  cd weather_app
 ```
 
 Install dependencies
@@ -25,6 +25,17 @@ Install dependencies
 ```
   pip install -r requirements.txt
 ```
+
+## Environment Variables
+
+To run this project, you will need to create `env.py` inside weather_app directory (where `manage.py` is) and add the following environment variables to your `env.py` file
+
+`OWM_API_KEY` - Open Weather Map API key
+
+Example
+``` OWM_API_KEY = "3967de3131f31fbbcc084d5c969e9020" ```
+
+## Run Locally
 
 Create database
 
@@ -43,15 +54,6 @@ Run server
 ```
   python manage.py runserver
 ```
-
-## Environment Variables
-
-To run this project, you will need to create `env.py` inside weather_app directory and add the following environment variables to your `env.py` file
-
-`OWM_API_KEY` - Open Weather Map API key
-
-Example
-``` OWM_API_KEY = "3967de3131f31fbbcc084d5c969e9020" ```
 
 ## API Reference
 
