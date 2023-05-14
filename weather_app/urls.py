@@ -17,9 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from weather_api import views
+from django.contrib.auth.views import LoginView
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
+    path('user/create', views.create_user, name='create_user'),
     path("weather/current", views.current_weather, name="current_weather"),
     path("weather/forecast", views.forecast_weather, name="forecast_weather"),
     path("weather/history", views.history_weather, name='history_weather'),

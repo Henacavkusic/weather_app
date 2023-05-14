@@ -1,3 +1,4 @@
 .idea/
 env.py
 logs/*
+db.sqlite3
