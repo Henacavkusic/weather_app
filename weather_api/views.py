@@ -12,8 +12,8 @@ api_logger = logging.getLogger(__name__)
 
 def current_weather(request):
     location = request.GET['location']
-    wd = cache.get(f"{location}:current", [])
-    if not wd:
+    weather_app_response = cache.get(f"{location}:current", [])
+    if not weather_app_response:
         lat, lon, err = get_lat_lon(location)
         if not err:
             url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={env.OWM_API_KEY}&units=metric"
@@ -25,19 +25,21 @@ def current_weather(request):
 
             data = response.json()
             wd = WeatherData(data['current']).to_dict()
-            cache.set(key=f"{location}:current", value=wd, timeout=600)
+            weather_app_response = {"location": location, "data": wd,
+                                    "last_refreshed": datetime.now().strftime("%m-%d-%Y %H:%M:%S")}
+            cache.set(key=f"{location}:current", value=weather_app_response, timeout=600)
             api_logger.info(f"Weather data retrieved successfully")
-            return JsonResponse({location: wd})
+            return JsonResponse(weather_app_response)
         return err
     else:
         api_logger.info(f"Weather data retrieved from cache successfully")
-        return JsonResponse({location: wd})
+        return JsonResponse(weather_app_response)
 
 
 def forecast_weather(request):
     location = request.GET['location']
-    wd = cache.get(f"{location}:forecast", [])
-    if not wd:
+    weather_app_response = cache.get(f"{location}:forecast", [])
+    if not weather_app_response:
         lat, lon, err = get_lat_lon(location)
         if not err:
             url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={env.OWM_API_KEY}&units=metric"
@@ -51,20 +53,22 @@ def forecast_weather(request):
             wd = []
             for day in data['daily']:
                 wd.append(WeatherData(day).to_dict())
-            cache.set(key=f"{location}:forecast", value=wd, timeout=600)
+            weather_app_response = {"location": location, "data": wd,
+                                    "last_refreshed": datetime.now().strftime("%m-%d-%Y %H:%M:%S")}
+            cache.set(key=f"{location}:forecast", value=weather_app_response, timeout=600)
             api_logger.info(f"Weather data retrieved successfully")
-            return JsonResponse({location: wd})
+            return JsonResponse(weather_app_response)
         return err
     else:
         api_logger.info(f"Weather data retrieved from cache successfully")
-        return JsonResponse({location: wd})
+        return JsonResponse(weather_app_response)
 
 
 def history_weather(request):
     location = request.GET['location']
     dt = int(datetime.fromisoformat(request.GET['date']).timestamp())
-    wd = cache.get(f"{location}:history", [])
-    if not wd:
+    weather_app_response = cache.get(f"{location}:history", [])
+    if not weather_app_response:
         lat, lon, err = get_lat_lon(location)
         if not err:
             url = f"https://api.openweathermap.org/data/3.0/onecall/timemachine?lat={lat}&lon={lon}&dt={dt}&appid={env.OWM_API_KEY}&units=metric"
@@ -76,13 +80,15 @@ def history_weather(request):
 
             data = response.json()
             wd = WeatherData(data['data'][0]).to_dict()
-            cache.set(key=f"{location}:history", value=wd, timeout=600)
+            weather_app_response = {"location": location, "data": wd,
+                                    "last_refreshed": datetime.now().strftime("%m-%d-%Y %H:%M:%S")}
+            cache.set(key=f"{location}:history", value=weather_app_response, timeout=600)
             api_logger.info(f"Weather data retrieved successfully")
-            return JsonResponse({location: wd})
+            return JsonResponse(weather_app_response)
         return err
     else:
         api_logger.info(f"Weather data retrieved from cache successfully")
-        return JsonResponse({location: wd})
+        return JsonResponse(weather_app_response)
 
 
 def get_lat_lon(location):
