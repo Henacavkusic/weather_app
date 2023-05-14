@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from datetime import date, datetime
 import requests
 import env
+from weather_api.models import WeatherData
 
 
 def current_weather(request):
@@ -15,7 +16,7 @@ def current_weather(request):
             return JsonResponse({"error": f"{response.json()}"}, status=response.status_code)
 
         data = response.json()
-        return JsonResponse({location: make_response(data['current'])})
+        return JsonResponse({location: WeatherData(data['current']).to_dict()})
     return err
 
 
@@ -31,7 +32,7 @@ def forecast_weather(request):
         data = response.json()
         data_to_return = []
         for day in data['daily']:
-            data_to_return.append(make_response(day))
+            data_to_return.append(WeatherData(day).to_dict())
         return JsonResponse({location: data_to_return})
     return err
 
@@ -47,7 +48,7 @@ def history_weather(request):
             return JsonResponse({"error": f"{response.json()}"}, status=response.status_code)
 
         data = response.json()
-        return JsonResponse({location: make_response(data['data'][0])})
+        return JsonResponse({location: WeatherData(data['data'][0]).to_dict()})
     return err
 
 
@@ -64,22 +65,4 @@ def get_lat_lon(location):
 
 
 def make_response(data):
-    r = {
-        "day": date.fromtimestamp(data['dt']).isoformat(),
-        "temperature": data['temp'],
-        "pressure": data['pressure'],
-        "humidity": data['humidity'],
-        "wind_speed": data['wind_speed'],
-        "clouds": data['clouds'],
-        "rain": 0,
-        "snow": 0
-    }
-
-    if "rain" in data:
-        r['rain'] = data['rain']
-    if "snow" in data:
-        r['snow'] = data['snow']
-    if "uvi" in data:
-        r['uvi'] = data['uvi']
-
-    return r
+    return
