@@ -2,4 +2,5 @@
 env.py
 logs/*
 *.sqlite3
-__pycache__
+**/__pycache__/
+
