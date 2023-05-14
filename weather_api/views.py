@@ -57,7 +57,7 @@ def current_weather(request):
             response = requests.get(url)
             if response.status_code != 200:
                 api_logger.error("error: ", response.json())
-                return JsonResponse({"error": f"{response.json()}"}, status=response.status_code)
+                return JsonResponse({"error": f"OWM response: {response.json()}"}, status=response.status_code)
 
             data = response.json()
             wd = WeatherData(data['current']).to_dict()
@@ -96,7 +96,7 @@ def forecast_weather(request):
             response = requests.get(url)
             if response.status_code != 200:
                 api_logger.error("error: ", response.json())
-                return JsonResponse({"error": f"{response.json()}"}, status=response.status_code)
+                return JsonResponse({"error": f"Error calling OWM: {response.json()}"}, status=response.status_code)
 
             data = response.json()
             wd = []
@@ -127,7 +127,11 @@ def history_weather(request):
         api_logger.error("error: ", "Parameter location not provided")
         return JsonResponse({"error": "Parameter location not provided"}, status=422)
     if "date" in query_params:
-        dt = int(datetime.fromisoformat(query_params['date']).timestamp())
+        try:
+            dt = int(datetime.fromisoformat(query_params['date']).timestamp())
+        except ValueError as e:
+            api_logger.error("error: ", exc_info=e)
+            return JsonResponse({"error": e.args[0]}, status=422)
     else:
         api_logger.error("error: ", "Parameter date not provided")
         return JsonResponse({"error": "Parameter date not provided"}, status=422)
@@ -142,7 +146,8 @@ def history_weather(request):
             response = requests.get(url)
             if response.status_code != 200:
                 api_logger.error("error: ", response.json())
-                return JsonResponse({"error": f"{response.json()}"}, status=response.status_code)
+                return JsonResponse({"error": f"Error calling OWM: {response.json()}"},
+                                    status=response.status_code)
 
             data = response.json()
             wd = WeatherData(data['data'][0]).to_dict()
@@ -165,7 +170,7 @@ def get_lat_lon(location):
     response = requests.get(url)
     if response.status_code != 200:
         api_logger.error("error: ", response.json())
-        return 0, 0, JsonResponse({"error": f"{response.json()}"}, status=response.status_code)
+        return 0, 0, JsonResponse({"error": f"Error calling OWM: {response.json()}"}, status=response.status_code)
 
     data = response.json()
     if data:
