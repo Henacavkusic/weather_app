@@ -1,3 +1,13 @@
 from django.shortcuts import render
 
-# Create your views here.
+
+def current_weather(request, location):
+    pass
+
+
+def forecast_weather(request, location):
+    pass
+
+
+def history_weather(request, location, datetime):
+    pass
