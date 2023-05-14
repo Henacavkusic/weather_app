@@ -48,11 +48,13 @@ def current_weather(request):
     else:
         api_logger.error("error: ", "Parameter location not provided")
         return JsonResponse({"error": "Parameter location not provided"}, status=422)
+    state_code = query_params['state_code'] if "state_code" in query_params else ''
+    country_code = query_params['country_code'] if "country_code" in query_params else ''
     # Getting cached response from redis if not expired
-    weather_app_response = cache.get(f"{location}:current", [])
+    weather_app_response = cache.get(f"{location}:{state_code}:{country_code}:current", [])
     if not weather_app_response:
         # Getting latitude and longitude for requested location
-        lat, lon, err = get_lat_lon(location)
+        lat, lon, err = get_lat_lon(location, state_code, country_code)
         if not err:
             url = f"{OWM_BASE_URL}{OWM_QUERY_PARAMS.format(lat,lon,OWM_API_KEY)}"
             api_logger.info(f"Getting current weather data for {location}")
@@ -67,7 +69,7 @@ def current_weather(request):
             # Creating final response
             weather_app_response = {"location": location, "data": wd,
                                     "last_refreshed": datetime.now().strftime("%m-%d-%Y %H:%M:%S")}
-            cache.set(key=f"{location}:current", value=weather_app_response, timeout=600)
+            cache.set(key=f"{location}:{state_code}:{country_code}:current", value=weather_app_response, timeout=600)
             # Caching response for 10 min in redis
             api_logger.info(f"Weather data retrieved successfully")
             return JsonResponse({"success": weather_app_response}, status=200)
@@ -88,11 +90,13 @@ def forecast_weather(request):
     else:
         api_logger.error("error: ", "Parameter location not provided")
         return JsonResponse({"error": "Parameter location not provided"}, status=422)
+    state_code = query_params['state_code'] if "state_code" in query_params else ''
+    country_code = query_params['country_code'] if "country_code" in query_params else ''
     # Getting cached response from redis if not expired
-    weather_app_response = cache.get(f"{location}:forecast", [])
+    weather_app_response = cache.get(f"{location}:{state_code}:{country_code}:forecast", [])
     if not weather_app_response:
         # Getting latitude and longitude for requested location
-        lat, lon, err = get_lat_lon(location)
+        lat, lon, err = get_lat_lon(location, state_code, country_code)
         if not err:
             url = f"{OWM_BASE_URL}{OWM_QUERY_PARAMS.format(lat,lon,OWM_API_KEY)}"
             api_logger.info(f"Getting forecast weather data for {location}")
@@ -109,7 +113,7 @@ def forecast_weather(request):
             # Creating final response
             weather_app_response = {"location": location, "data": wd,
                                     "last_refreshed": datetime.now().strftime("%m-%d-%Y %H:%M:%S")}
-            cache.set(key=f"{location}:forecast", value=weather_app_response, timeout=600)
+            cache.set(key=f"{location}:{state_code}:{country_code}:forecast", value=weather_app_response, timeout=600)
             # Caching response for 10 min in redis
             api_logger.info(f"Weather data retrieved successfully")
             return JsonResponse({"success": weather_app_response}, status=200)
@@ -130,6 +134,8 @@ def history_weather(request):
     else:
         api_logger.error("error: ", "Parameter location not provided")
         return JsonResponse({"error": "Parameter location not provided"}, status=422)
+    state_code = query_params['state_code'] if "state_code" in query_params else ''
+    country_code = query_params['country_code'] if "country_code" in query_params else ''
     if "date" in query_params:
         try:
             dt = int(datetime.fromisoformat(query_params['date']).timestamp())
@@ -140,10 +146,10 @@ def history_weather(request):
         api_logger.error("error: ", "Parameter date not provided")
         return JsonResponse({"error": "Parameter date not provided"}, status=422)
     # Getting cached response from redis if not expired
-    weather_app_response = cache.get(f"{location}{query_params['date']}:history", [])
+    weather_app_response = cache.get(f"{location}:{state_code}:{country_code}:{query_params['date']}:history", [])
     if not weather_app_response:
         # Getting latitude and longitude for requested location
-        lat, lon, err = get_lat_lon(location)
+        lat, lon, err = get_lat_lon(location, state_code, country_code)
         if not err:
             url = f"{OWM_BASE_URL}/timemachine{OWM_QUERY_PARAMS.format(lat, lon, OWM_API_KEY)}&dt={dt}"
             api_logger.info(f"Getting weather data for {location} for {request.GET['date']}")
@@ -160,7 +166,7 @@ def history_weather(request):
             weather_app_response = {"location": location, "data": wd,
                                     "last_refreshed": datetime.now().strftime("%d-%m-%Y %H:%M:%S")}
             # Caching response for 10 min in redis
-            cache.set(key=f"{location}:{query_params['date']}:history", value=weather_app_response, timeout=600)
+            cache.set(key=f"{location}:{state_code}:{country_code}:{query_params['date']}:history", value=weather_app_response, timeout=600)
             api_logger.info(f"Weather data retrieved successfully")
             return JsonResponse({"success": weather_app_response}, status=200)
         return err
@@ -169,8 +175,8 @@ def history_weather(request):
         return JsonResponse({"success": weather_app_response}, status=200)
 
 
-def get_lat_lon(location):
-    url = f"https://api.openweathermap.org/geo/1.0/direct?q={location}&appid={OWM_API_KEY}"
+def get_lat_lon(location, state_code, country_code):
+    url = f"https://api.openweathermap.org/geo/1.0/direct?q={location},{state_code},{country_code}&appid={OWM_API_KEY}"
     api_logger.info(f"Getting latitude and longitude coordinates for {location}")
     response = requests.get(url)
     if response.status_code != 200:
