@@ -13,6 +13,8 @@ from env import OWM_API_KEY
 from weather_api.models import WeatherData
 
 api_logger = logging.getLogger(__name__)
+OWM_BASE_URL = "https://api.openweathermap.org/data/3.0/onecall"
+OWM_QUERY_PARAMS = "?lat={}&lon={}&appid={}&units=metric"
 
 
 @api_view(['POST'])
@@ -52,13 +54,14 @@ def current_weather(request):
         # Getting latitude and longitude for requested location
         lat, lon, err = get_lat_lon(location)
         if not err:
-            url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={OWM_API_KEY}&units=metric"
+            url = f"{OWM_BASE_URL}{OWM_QUERY_PARAMS.format(lat,lon,OWM_API_KEY)}"
             api_logger.info(f"Getting current weather data for {location}")
             response = requests.get(url)
             if response.status_code != 200:
                 api_logger.error("error: ", response.json())
                 return JsonResponse({"error": f"OWM response: {response.json()}"}, status=response.status_code)
 
+            # Getting data from OWM response
             data = response.json()
             wd = WeatherData(data['current']).to_dict()
             # Creating final response
@@ -91,15 +94,16 @@ def forecast_weather(request):
         # Getting latitude and longitude for requested location
         lat, lon, err = get_lat_lon(location)
         if not err:
-            url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={OWM_API_KEY}&units=metric"
+            url = f"{OWM_BASE_URL}{OWM_QUERY_PARAMS.format(lat,lon,OWM_API_KEY)}"
             api_logger.info(f"Getting forecast weather data for {location}")
             response = requests.get(url)
             if response.status_code != 200:
                 api_logger.error("error: ", response.json())
                 return JsonResponse({"error": f"Error calling OWM: {response.json()}"}, status=response.status_code)
-
+            # Getting data from OWM response
             data = response.json()
             wd = []
+            # Extracting daily data from OWM response
             for day in data['daily']:
                 wd.append(WeatherData(day).to_dict())
             # Creating final response
@@ -136,12 +140,12 @@ def history_weather(request):
         api_logger.error("error: ", "Parameter date not provided")
         return JsonResponse({"error": "Parameter date not provided"}, status=422)
     # Getting cached response from redis if not expired
-    weather_app_response = cache.get(f"{location}:history", [])
+    weather_app_response = cache.get(f"{location}{query_params['date']}:history", [])
     if not weather_app_response:
         # Getting latitude and longitude for requested location
         lat, lon, err = get_lat_lon(location)
         if not err:
-            url = f"https://api.openweathermap.org/data/3.0/onecall/timemachine?lat={lat}&lon={lon}&dt={dt}&appid={OWM_API_KEY}&units=metric"
+            url = f"{OWM_BASE_URL}/timemachine{OWM_QUERY_PARAMS.format(lat, lon, OWM_API_KEY)}&dt={dt}"
             api_logger.info(f"Getting weather data for {location} for {request.GET['date']}")
             response = requests.get(url)
             if response.status_code != 200:
@@ -149,13 +153,14 @@ def history_weather(request):
                 return JsonResponse({"error": f"Error calling OWM: {response.json()}"},
                                     status=response.status_code)
 
+            # Getting data from OWM response
             data = response.json()
             wd = WeatherData(data['data'][0]).to_dict()
             # Creating final response
             weather_app_response = {"location": location, "data": wd,
-                                    "last_refreshed": datetime.now().strftime("%m-%d-%Y %H:%M:%S")}
+                                    "last_refreshed": datetime.now().strftime("%d-%m-%Y %H:%M:%S")}
             # Caching response for 10 min in redis
-            cache.set(key=f"{location}:history", value=weather_app_response, timeout=600)
+            cache.set(key=f"{location}:{query_params['date']}:history", value=weather_app_response, timeout=600)
             api_logger.info(f"Weather data retrieved successfully")
             return JsonResponse({"success": weather_app_response}, status=200)
         return err

@@ -5,7 +5,7 @@ from datetime import date, datetime
 class WeatherData:
 
     def __init__(self, data_dict: dict):
-        self.date: date = date.fromtimestamp(data_dict.get('dt', 0))
+        self.date: str = date.fromtimestamp(data_dict.get('dt', 0)).strftime("%d-%m-%Y")
         self.temperature: float = data_dict.get('temp', 0.0)
         self.pressure: float = data_dict.get('pressure', 0.0)
         self.humidity: float = data_dict.get('humidity', 0.0)
