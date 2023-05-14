@@ -1,7 +1,7 @@
-
 # Weather app RESTful API
 
 By using Open Weather Map as API provider this API simplifies their response for average user which means no geek stuff.
+
 ## Installation
 
 First make sure you have installed `python` and `redis` on your system
@@ -11,7 +11,7 @@ First make sure you have installed `python` and `redis` on your system
 Clone the project
 
 ```
-  git clone https://github.com/...
+  git clone https://github.com/Henacavkusic/weather_app.git
 ```
 
 Go to the project directory
@@ -32,30 +32,37 @@ Create database
   python manage.py migrate
 ```
 
-Create superuser
+Create superuser (admin)
 
 ```
   python manage.py createsuperuser
 ```
 You will be prompted to enter username, email (optional) and password
 
+Run server
+```
+  python manage.py runserver
+```
 
 ## Environment Variables
 
 To run this project, you will need to create `env.py` inside weather_app directory and add the following environment variables to your `env.py` file
 
-`OWM_API_KEY` - Open Weather Map
+`OWM_API_KEY` - Open Weather Map API key
 
 Example
 ``` OWM_API_KEY = "3967de3131f31fbbcc084d5c969e9020" ```
 
-
 ## API Reference
+
+#### Import Postman collection
+
+[Weather App Collection](https://api.postman.com/collections/6892014-0a6e0552-e425-4c1b-8837-96c9fad4635d?access_key=PMAT-01H0BN34M3KRVXW9Z00KC1DR93)
 
 #### Create user (admin endpoint)
 
 ```
-  POST curl -u superuserusername:superuserpassword http://127.0.0.1:8000/user/create/ -d "username=username" -d "password=password" 
+  POST: curl -u admin:adminpassword http://127.0.0.1:8000/user/create/ -d "username=username" -d "password=password" 
 ```
 
 | Parameter | Type     | Description                |
@@ -65,8 +72,8 @@ Example
 
 #### Get current weather
 
-```http
-  GET curl -G -u username:password http://127.0.0.1:8000/weather/current/ -d "location=Sarajevo" -d "country_code=BA" 
+```
+  GET: curl -G -u username:password http://127.0.0.1:8000/weather/current/ -d "location=Sarajevo" -d "country_code=BA" 
 ```
 
 | Parameter | Type     | Description                |
@@ -77,8 +84,8 @@ Example
 
 #### Get forecast weather
 
-```http
-  GET curl -G -u username:password http://127.0.0.1:8000/weather/forecast/ -d "location=Sarajevo" -d "country_code=BA" 
+```
+  GET: curl -G -u username:password http://127.0.0.1:8000/weather/forecast/ -d "location=Sarajevo" -d "country_code=BA" 
 ```
 
 | Parameter | Type     | Description                |
@@ -89,8 +96,8 @@ Example
 
 #### Get historical weather
 
-```http
-  GET curl -G -u username:password http://127.0.0.1:8000/weather/history/ -d "location=Sarajevo" -d "date=2023-05-16" -d "country_code=BA" 
+```
+  GET: curl -G -u username:password http://127.0.0.1:8000/weather/history/ -d "location=Sarajevo" -d "date=2023-05-16" -d "country_code=BA" 
 ```
 
 | Parameter | Type     | Description                |
