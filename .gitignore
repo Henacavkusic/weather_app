@@ -1,4 +1,4 @@
-.idea/
+**/.idea/
 env.py
 logs/*
 *.sqlite3
