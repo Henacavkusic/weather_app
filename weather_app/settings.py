@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import logging
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -112,6 +113,13 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# Define the log directory path
+log_dir = os.path.join(BASE_DIR, 'logs')
+
+# Create the log directory if it does not exist
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
 
 LOGGING = {
     'version': 1,
