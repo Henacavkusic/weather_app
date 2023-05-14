@@ -72,7 +72,9 @@ def get_lat_lon(location):
         return 0, 0, JsonResponse({"error": f"{response.json()}"}, status=response.status_code)
 
     data = response.json()
-    lat = data[0]['lat']
-    lon = data[0]['lon']
-    return lat, lon, ''
+    if data:
+        lat = data[0]['lat']
+        lon = data[0]['lon']
+        return lat, lon, ''
+    return 0, 0, JsonResponse({"error": f"Your location {location} does not exist"}, status=400)
 
