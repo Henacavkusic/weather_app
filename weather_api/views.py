@@ -17,7 +17,6 @@ api_logger = logging.getLogger(__name__)
 
 @api_view(['POST'])
 def create_user(request):
-    print(request)
     # Extract the username and password from the request data
     username = request.data.get('username')
     password = request.data.get('password')
@@ -41,7 +40,12 @@ def create_user(request):
 def current_weather(request):
     print(request)
     # Extract the location from the request query params
-    location = request.GET['location']
+    query_params = request.GET.copy()
+    if "location" in query_params:
+        location = query_params['location']
+    else:
+        api_logger.error("error: ", "Parameter location not provided")
+        return JsonResponse({"error": "Parameter location not provided"}, status=422)
     # Getting cached response from redis if not expired
     weather_app_response = cache.get(f"{location}:current", [])
     if not weather_app_response:
@@ -75,7 +79,12 @@ def current_weather(request):
 @permission_classes([IsAuthenticated])
 def forecast_weather(request):
     # Extract the location from the request query params
-    location = request.GET['location']
+    query_params = request.GET.copy()
+    if "location" in query_params:
+        location = query_params['location']
+    else:
+        api_logger.error("error: ", "Parameter location not provided")
+        return JsonResponse({"error": "Parameter location not provided"}, status=422)
     # Getting cached response from redis if not expired
     weather_app_response = cache.get(f"{location}:forecast", [])
     if not weather_app_response:
@@ -111,8 +120,17 @@ def forecast_weather(request):
 @permission_classes([IsAuthenticated])
 def history_weather(request):
     # Extract the location and date from the request query params
-    location = request.GET['location']
-    dt = int(datetime.fromisoformat(request.GET['date']).timestamp())
+    query_params = request.GET.copy()
+    if "location" in query_params:
+        location = query_params['location']
+    else:
+        api_logger.error("error: ", "Parameter location not provided")
+        return JsonResponse({"error": "Parameter location not provided"}, status=422)
+    if "date" in query_params:
+        dt = int(datetime.fromisoformat(query_params['date']).timestamp())
+    else:
+        api_logger.error("error: ", "Parameter date not provided")
+        return JsonResponse({"error": "Parameter date not provided"}, status=422)
     # Getting cached response from redis if not expired
     weather_app_response = cache.get(f"{location}:history", [])
     if not weather_app_response:
