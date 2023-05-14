@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.core.cache import cache
 from django.http import JsonResponse
 from rest_framework.authentication import BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 
 from datetime import datetime
@@ -18,6 +18,8 @@ OWM_QUERY_PARAMS = "?lat={}&lon={}&appid={}&units=metric"
 
 
 @api_view(['POST'])
+@authentication_classes([BasicAuthentication])
+@permission_classes([IsAuthenticated, IsAdminUser])
 def create_user(request):
     # Extract the username and password from the request data
     username = request.data.get('username')
@@ -56,7 +58,7 @@ def current_weather(request):
         # Getting latitude and longitude for requested location
         lat, lon, err = get_lat_lon(location, state_code, country_code)
         if not err:
-            url = f"{OWM_BASE_URL}{OWM_QUERY_PARAMS.format(lat,lon,OWM_API_KEY)}"
+            url = f"{OWM_BASE_URL}{OWM_QUERY_PARAMS.format(lat, lon, OWM_API_KEY)}"
             api_logger.info(f"Getting current weather data for {location}")
             response = requests.get(url)
             if response.status_code != 200:
@@ -98,7 +100,7 @@ def forecast_weather(request):
         # Getting latitude and longitude for requested location
         lat, lon, err = get_lat_lon(location, state_code, country_code)
         if not err:
-            url = f"{OWM_BASE_URL}{OWM_QUERY_PARAMS.format(lat,lon,OWM_API_KEY)}"
+            url = f"{OWM_BASE_URL}{OWM_QUERY_PARAMS.format(lat, lon, OWM_API_KEY)}"
             api_logger.info(f"Getting forecast weather data for {location}")
             response = requests.get(url)
             if response.status_code != 200:
@@ -166,7 +168,8 @@ def history_weather(request):
             weather_app_response = {"location": location, "data": wd,
                                     "last_refreshed": datetime.now().strftime("%d-%m-%Y %H:%M:%S")}
             # Caching response for 10 min in redis
-            cache.set(key=f"{location}:{state_code}:{country_code}:{query_params['date']}:history", value=weather_app_response, timeout=600)
+            cache.set(key=f"{location}:{state_code}:{country_code}:{query_params['date']}:history",
+                      value=weather_app_response, timeout=600)
             api_logger.info(f"Weather data retrieved successfully")
             return JsonResponse({"success": weather_app_response}, status=200)
         return err

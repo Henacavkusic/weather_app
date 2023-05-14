@@ -6,5 +6,4 @@ urlpatterns = [
     path("weather/current/", views.current_weather, name="current_weather"),
     path("weather/forecast/", views.forecast_weather, name="forecast_weather"),
     path("weather/history/", views.history_weather, name='history_weather'),
-
 ]
